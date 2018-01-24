@@ -1,6 +1,7 @@
-module XmlNodeTest exposing (..)
+module XmlNodeTest exposing (xml)
 
-import Test exposing (..)
+import Test exposing (Test, describe, test, fuzz)
+import Fuzz as F
 import Expect
 import XmlNode as X
 
@@ -8,14 +9,14 @@ import XmlNode as X
 xml : Test
 xml =
     describe "I can create nodes"
-        [ test "I can create text nodes" <|
-            \_ -> testTextNode
+        [ fuzz F.string "I can create text nodes" <|
+            \text -> testTextNode text
         ]
 
 
-testTextNode : Expect.Expectation
-testTextNode =
-    "hello world"
+testTextNode : String -> Expect.Expectation
+testTextNode text =
+    text
         |> X.text
         |> X.toString
-        |> Expect.equal "hello world"
+        |> Expect.equal text

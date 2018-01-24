@@ -1,11 +1,15 @@
 module XmlNode exposing (text, toString)
 
 
-text : a -> a
+type XmlNode
+    = Text String
+
+
+text : String -> XmlNode
 text =
-    identity
+    Text
 
 
-toString : a -> a
-toString =
-    identity
+toString : XmlNode -> String
+toString (Text string) =
+    string
