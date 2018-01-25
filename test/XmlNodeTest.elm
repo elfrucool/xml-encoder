@@ -20,6 +20,12 @@ xml =
                 \_ -> testElementsWithAttributes
             , test "Attribute values are url encoded" <|
                 \_ -> testElementsWithAttributesUrlEncoded
+            , fuzz F.string "I can create elements with single text child" <|
+                \text -> testElementsWithTextChild text
+            , test "I can create elements with single element child" <|
+                \_ -> testElementsWithElementChild
+            , test "I can create elements with multiple children" <|
+                \_ -> testElementsWithMultipleChildren
             ]
         ]
 
@@ -41,20 +47,47 @@ testEmptyElement =
 
 testNameOnlyElements : Expect.Expectation
 testNameOnlyElements =
-    X.element "name" []
+    X.element "name" [] []
         |> X.toString
         |> Expect.equal "<name/>"
 
 
 testElementsWithAttributes : Expect.Expectation
 testElementsWithAttributes =
-    X.element "name" [ ( "attr1", "value1" ), ( "attr2", "value2" ) ]
+    X.element "name" [ ( "attr1", "val1" ), ( "attr2", "val2" ) ] []
         |> X.toString
-        |> Expect.equal "<name attr1=\"value1\" attr2=\"value2\"/>"
+        |> Expect.equal "<name attr1=\"val1\" attr2=\"val2\"/>"
 
 
 testElementsWithAttributesUrlEncoded : Expect.Expectation
 testElementsWithAttributesUrlEncoded =
-    X.element "name" [ ( "attr1", "value\"" ) ]
+    X.element "name" [ ( "attr1", "value\"" ) ] []
         |> X.toString
         |> Expect.equal "<name attr1=\"value%22\"/>"
+
+
+testElementsWithTextChild : String -> Expect.Expectation
+testElementsWithTextChild text =
+    X.element "name" [] [ X.text text ]
+        |> X.toString
+        |> Expect.equal ("<name>" ++ text ++ "</name>")
+
+
+testElementsWithElementChild : Expect.Expectation
+testElementsWithElementChild =
+    X.element "Parent" [] [ X.element "Child" [] [] ]
+        |> X.toString
+        |> Expect.equal
+            "<Parent>\n  <Child/>\n</Parent>"
+
+
+testElementsWithMultipleChildren : Expect.Expectation
+testElementsWithMultipleChildren =
+    Expect.equal "<Parent>\n  <Child-1/>\n  hello\n  <Child-2/>\n</Parent>" <|
+        X.toString <|
+            X.element "Parent"
+                []
+                [ X.element "Child-1" [] []
+                , X.text "hello"
+                , X.element "Child-2" [] []
+                ]

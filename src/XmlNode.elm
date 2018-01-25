@@ -10,6 +10,7 @@ type alias Attribute =
 type alias XmlElement =
     { name : String
     , attributes : List Attribute
+    , children : List XmlNode
     }
 
 
@@ -26,12 +27,12 @@ text =
 
 empty : XmlNode
 empty =
-    Element <| XmlElement "" []
+    Element <| XmlElement "" [] []
 
 
-element : String -> List Attribute -> XmlNode
-element name attributes =
-    Element <| XmlElement name attributes
+element : String -> List Attribute -> List XmlNode -> XmlNode
+element name attributes children =
+    Element <| XmlElement name attributes children
 
 
 toString : XmlNode -> String
@@ -40,8 +41,54 @@ toString node =
         Text string ->
             string
 
-        Element { name, attributes } ->
-            "<" ++ name ++ attributesToString attributes ++ "/>"
+        Element element ->
+            elementToString element
+
+
+elementToString : XmlElement -> String
+elementToString { name, attributes, children } =
+    if List.isEmpty children then
+        openElement name attributes ++ "/>"
+    else
+        startElement name attributes
+            ++ childrenToString children
+            ++ closeElement name
+
+
+childrenToString : List XmlNode -> String
+childrenToString nodes =
+    case nodes of
+        [] ->
+            ""
+
+        [ node ] ->
+            case node of
+                Text _ ->
+                    toString node
+
+                Element _ ->
+                    "\n  " ++ toString node ++ "\n"
+
+        _ ->
+            nodes
+                |> List.map toString
+                |> String.join "\n  "
+                |> (\s -> "\n  " ++ s ++ "\n")
+
+
+startElement : String -> List Attribute -> String
+startElement name attributes =
+    openElement name attributes ++ ">"
+
+
+openElement : String -> List Attribute -> String
+openElement name attributes =
+    "<" ++ name ++ attributesToString attributes
+
+
+closeElement : String -> String
+closeElement name =
+    "</" ++ name ++ ">"
 
 
 attributesToString : List Attribute -> String
