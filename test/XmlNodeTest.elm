@@ -26,6 +26,8 @@ xml =
                 \_ -> testElementsWithElementChild
             , test "I can create elements with multiple children" <|
                 \_ -> testElementsWithMultipleChildren
+            , test "I can create elements with children with children" <|
+                \_ -> testNestedChildrenElements
             ]
         ]
 
@@ -34,49 +36,49 @@ testTextNode : String -> Expect.Expectation
 testTextNode text =
     text
         |> X.text
-        |> X.toString
+        |> X.toString 0
         |> Expect.equal text
 
 
 testEmptyElement : Expect.Expectation
 testEmptyElement =
     X.empty
-        |> X.toString
+        |> X.toString 0
         |> Expect.equal "</>"
 
 
 testNameOnlyElements : Expect.Expectation
 testNameOnlyElements =
     X.element "name" [] []
-        |> X.toString
+        |> X.toString 0
         |> Expect.equal "<name/>"
 
 
 testElementsWithAttributes : Expect.Expectation
 testElementsWithAttributes =
     X.element "name" [ ( "attr1", "val1" ), ( "attr2", "val2" ) ] []
-        |> X.toString
+        |> X.toString 0
         |> Expect.equal "<name attr1=\"val1\" attr2=\"val2\"/>"
 
 
 testElementsWithAttributesUrlEncoded : Expect.Expectation
 testElementsWithAttributesUrlEncoded =
     X.element "name" [ ( "attr1", "value\"" ) ] []
-        |> X.toString
+        |> X.toString 0
         |> Expect.equal "<name attr1=\"value%22\"/>"
 
 
 testElementsWithTextChild : String -> Expect.Expectation
 testElementsWithTextChild text =
     X.element "name" [] [ X.text text ]
-        |> X.toString
+        |> X.toString 0
         |> Expect.equal ("<name>" ++ text ++ "</name>")
 
 
 testElementsWithElementChild : Expect.Expectation
 testElementsWithElementChild =
     X.element "Parent" [] [ X.element "Child" [] [] ]
-        |> X.toString
+        |> X.toString 0
         |> Expect.equal testElementsWithTextChild_expected
 
 
@@ -94,7 +96,7 @@ testElementsWithMultipleChildren =
     Expect.equal
         testElementsWithMultipleChildren_expected
     <|
-        X.toString <|
+        X.toString 0 <|
             X.element "Parent"
                 []
                 [ X.element "Child-1" [] []
@@ -112,3 +114,41 @@ testElementsWithMultipleChildren_expected =
   <Child-2/>
 </Parent>
     """ |> String.trim
+
+
+testNestedChildrenElements : Expect.Expectation
+testNestedChildrenElements =
+    Expect.equal testNestedChildrenElements_expected <|
+        X.toString 0 <|
+            X.element "Node"
+                []
+                [ X.element "Child"
+                    []
+                    [ X.element "GrandChild" [] [] ]
+                , X.element "Child2"
+                    [ ( "attr1", "value1" )
+                    , ( "attr2", "value2" )
+                    ]
+                    [ X.text "Text" ]
+                , X.element "Child3"
+                    []
+                    [ X.text "text here"
+                    , X.element "GrandChild2" [] [ X.text "a text" ]
+                    ]
+                ]
+
+
+testNestedChildrenElements_expected : String
+testNestedChildrenElements_expected =
+    """
+<Node>
+  <Child>
+    <GrandChild/>
+  </Child>
+  <Child2 attr1="value1" attr2="value2">Text</Child2>
+  <Child3>
+    text here
+    <GrandChild2>a text</GrandChild2>
+  </Child3>
+</Node>
+      """ |> String.trim

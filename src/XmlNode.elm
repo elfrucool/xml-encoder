@@ -1,4 +1,4 @@
-module XmlNode exposing (text, toString, empty, element)
+module XmlNode exposing (XmlNode, text, toString, empty, element)
 
 import Http exposing (encodeUri)
 
@@ -16,7 +16,6 @@ type alias XmlElement =
 
 type XmlNode
     = Text String
-      -- | Element String (List Attribute)
     | Element XmlElement
 
 
@@ -35,28 +34,28 @@ element name attributes children =
     Element <| XmlElement name attributes children
 
 
-toString : XmlNode -> String
-toString node =
+toString : Int -> XmlNode -> String
+toString indentation node =
     case node of
         Text string ->
             string
 
         Element element ->
-            elementToString element
+            elementToString indentation element
 
 
-elementToString : XmlElement -> String
-elementToString { name, attributes, children } =
+elementToString : Int -> XmlElement -> String
+elementToString indentation { name, attributes, children } =
     if List.isEmpty children then
         openElement name attributes ++ "/>"
     else
         startElement name attributes
-            ++ childrenToString children
+            ++ childrenToString indentation children
             ++ closeElement name
 
 
-childrenToString : List XmlNode -> String
-childrenToString nodes =
+childrenToString : Int -> List XmlNode -> String
+childrenToString indentation nodes =
     case nodes of
         [] ->
             ""
@@ -64,16 +63,18 @@ childrenToString nodes =
         [ node ] ->
             case node of
                 Text _ ->
-                    toString node
+                    toString indentation node
 
                 Element _ ->
-                    "\n  " ++ toString node ++ "\n"
+                    nextIndent indentation
+                        ++ toString (indentation + 1) node
+                        ++ indent indentation
 
         _ ->
             nodes
-                |> List.map toString
-                |> String.join "\n  "
-                |> (\s -> "\n  " ++ s ++ "\n")
+                |> List.map (toString (indentation + 1))
+                |> String.join (nextIndent indentation)
+                |> (\s -> nextIndent indentation ++ s ++ indent indentation)
 
 
 startElement : String -> List Attribute -> String
@@ -105,3 +106,13 @@ attributesToString attributes =
 singleAttributeToString : Attribute -> String
 singleAttributeToString ( key, value ) =
     key ++ "=\"" ++ (encodeUri value) ++ "\""
+
+
+indent : Int -> String
+indent indentation =
+    "\n" ++ String.repeat indentation "  "
+
+
+nextIndent : Int -> String
+nextIndent indentation =
+    indent (indentation + 1)
