@@ -29,6 +29,10 @@ xml =
             , test "I can create elements with children with children" <|
                 \_ -> testNestedChildrenElements
             ]
+        , describe "I can get new elements modifying old elements"
+            [ test "I can set a name to an element" <|
+                \_ -> testUpdateElementName
+            ]
         ]
 
 
@@ -152,3 +156,11 @@ testNestedChildrenElements_expected =
   </Child3>
 </Node>
       """ |> String.trim
+
+
+testUpdateElementName : Expect.Expectation
+testUpdateElementName =
+    X.empty
+        |> X.setName "Name"
+        |> X.toString 0
+        |> Expect.equal "<Name/>"
