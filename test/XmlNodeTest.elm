@@ -77,13 +77,23 @@ testElementsWithElementChild : Expect.Expectation
 testElementsWithElementChild =
     X.element "Parent" [] [ X.element "Child" [] [] ]
         |> X.toString
-        |> Expect.equal
-            "<Parent>\n  <Child/>\n</Parent>"
+        |> Expect.equal testElementsWithTextChild_expected
+
+
+testElementsWithTextChild_expected : String
+testElementsWithTextChild_expected =
+    """
+<Parent>
+  <Child/>
+</Parent>
+  """ |> String.trim
 
 
 testElementsWithMultipleChildren : Expect.Expectation
 testElementsWithMultipleChildren =
-    Expect.equal "<Parent>\n  <Child-1/>\n  hello\n  <Child-2/>\n</Parent>" <|
+    Expect.equal
+        testElementsWithMultipleChildren_expected
+    <|
         X.toString <|
             X.element "Parent"
                 []
@@ -91,3 +101,14 @@ testElementsWithMultipleChildren =
                 , X.text "hello"
                 , X.element "Child-2" [] []
                 ]
+
+
+testElementsWithMultipleChildren_expected : String
+testElementsWithMultipleChildren_expected =
+    """
+<Parent>
+  <Child-1/>
+  hello
+  <Child-2/>
+</Parent>
+    """ |> String.trim
