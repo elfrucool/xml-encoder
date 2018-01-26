@@ -1,15 +1,26 @@
 module XmlNode
     exposing
-        ( XmlNode
+        ( -- types
+          XmlNode
+        , Attribute
+          -- building
         , text
-        , toString
         , empty
         , element
+          -- getting info
+        , getText
+        , getElementName
+        , getElementAttributes
+        , getElementChildren
+          -- rendering
+        , toString
+          -- modifying info
         , setName
         , setAttributes
         , addAttributes
         , setChildren
         , addChildren
+          -- util functions
         , escape
         , escapeAttribute
         )
@@ -18,6 +29,9 @@ import XmlNode.Types as T
 import XmlNode.Types exposing (..)
 import XmlNode.ToString as S
 import XmlNode.Util as U
+
+
+-- EXPORTING TYPES FROM ANOTHER MODULE
 
 
 type alias Attribute =
@@ -30,6 +44,10 @@ type alias XmlElement =
 
 type alias XmlNode =
     T.XmlNode
+
+
+
+-- BUILD FUNCTIONS
 
 
 text : String -> XmlNode
@@ -47,9 +65,61 @@ element name attributes children =
     Element <| XmlElement name attributes children
 
 
+
+-- GETTING INFO
+
+
+getText : XmlNode -> Maybe String
+getText node =
+    case node of
+        Text string ->
+            Just string
+
+        Element _ ->
+            Nothing
+
+
+getElementName : XmlNode -> Maybe String
+getElementName node =
+    case node of
+        Text _ ->
+            Nothing
+
+        Element xmlElement ->
+            Just xmlElement.name
+
+
+getElementAttributes : XmlNode -> List Attribute
+getElementAttributes node =
+    case node of
+        Text _ ->
+            []
+
+        Element xmlElement ->
+            xmlElement.attributes
+
+
+getElementChildren : XmlNode -> List XmlNode
+getElementChildren node =
+    case node of
+        Text _ ->
+            []
+
+        Element xmlElement ->
+            xmlElement.children
+
+
+
+-- TO STRING FUNCTION
+
+
 toString : Int -> XmlNode -> String
 toString =
     S.toString
+
+
+
+-- MODIFYING ELEMENTS FUNCTIONS
 
 
 setName : String -> XmlNode -> XmlNode

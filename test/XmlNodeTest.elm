@@ -43,6 +43,30 @@ xml =
             , test "I can add children to an element" <|
                 \_ -> testUpdateElementAddChildren
             ]
+        , describe "I can get data from nodes"
+            [ test "I can get text from text element" <|
+                \_ -> testGetText (X.text "a text") (Just "a text")
+            , test "extracting text from an element returns nothing" <|
+                \_ -> testGetText (X.empty) Nothing
+            , test "I can get the element's name" <|
+                \_ -> testGetElementName (X.element "Name" [] []) (Just "Name")
+            , test "extracting element name from a text returns nothing" <|
+                \_ -> testGetElementName (X.text "a text") Nothing
+            , test "I can get element attributes" <|
+                \_ ->
+                    testGetElementAttributes
+                        (X.element "Node" [ ( "attr", "value" ) ] [])
+                        [ ( "attr", "value" ) ]
+            , test "extracting element attributes from a text returns an empty list" <|
+                \_ -> testGetElementAttributes (X.text "a text") []
+            , test "I can get element children" <|
+                \_ ->
+                    testGetElementChildren
+                        (X.element "node" [] [ X.text "child text" ])
+                        [ X.text "child text" ]
+            , test "extracting element children from a text returns an empty list" <|
+                \_ -> testGetElementChildren (X.text "a text") []
+            ]
         ]
 
 
@@ -206,3 +230,31 @@ testUpdateElementAddChildren =
         |> X.addChildren [ X.text "hello" ]
         |> X.toString 0
         |> Expect.equal "<Node>\n  <Foo/>\n  hello\n</Node>"
+
+
+testGetText : X.XmlNode -> Maybe String -> Expect.Expectation
+testGetText node expected =
+    node
+        |> X.getText
+        |> Expect.equal expected
+
+
+testGetElementName : X.XmlNode -> Maybe String -> Expect.Expectation
+testGetElementName node expected =
+    node
+        |> X.getElementName
+        |> Expect.equal expected
+
+
+testGetElementAttributes : X.XmlNode -> List X.Attribute -> Expect.Expectation
+testGetElementAttributes node expected =
+    node
+        |> X.getElementAttributes
+        |> Expect.equal expected
+
+
+testGetElementChildren : X.XmlNode -> List X.XmlNode -> Expect.Expectation
+testGetElementChildren node expected =
+    node
+        |> X.getElementChildren
+        |> Expect.equal expected
