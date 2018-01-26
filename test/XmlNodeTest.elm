@@ -54,18 +54,18 @@ xml =
                 \_ -> testGetElementName (X.text "a text") Nothing
             , test "I can get element attributes" <|
                 \_ ->
-                    testGetElementAttributes
+                    testGetAttributes
                         (X.element "Node" [ ( "attr", "value" ) ] [])
                         [ ( "attr", "value" ) ]
             , test "extracting element attributes from a text returns an empty list" <|
-                \_ -> testGetElementAttributes (X.text "a text") []
+                \_ -> testGetAttributes (X.text "a text") []
             , test "I can get element children" <|
                 \_ ->
-                    testGetElementChildren
+                    testGetChildren
                         (X.element "node" [] [ X.text "child text" ])
                         [ X.text "child text" ]
             , test "extracting element children from a text returns an empty list" <|
-                \_ -> testGetElementChildren (X.text "a text") []
+                \_ -> testGetChildren (X.text "a text") []
             ]
         ]
 
@@ -246,15 +246,15 @@ testGetElementName node expected =
         |> Expect.equal expected
 
 
-testGetElementAttributes : X.XmlNode -> List X.Attribute -> Expect.Expectation
-testGetElementAttributes node expected =
+testGetAttributes : X.XmlNode -> List X.Attribute -> Expect.Expectation
+testGetAttributes node expected =
     node
-        |> X.getElementAttributes
+        |> X.getAttributes
         |> Expect.equal expected
 
 
-testGetElementChildren : X.XmlNode -> List X.XmlNode -> Expect.Expectation
-testGetElementChildren node expected =
+testGetChildren : X.XmlNode -> List X.XmlNode -> Expect.Expectation
+testGetChildren node expected =
     node
-        |> X.getElementChildren
+        |> X.getChildren
         |> Expect.equal expected

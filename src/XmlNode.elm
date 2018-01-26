@@ -10,8 +10,8 @@ module XmlNode
           -- getting info
         , getText
         , getElementName
-        , getElementAttributes
-        , getElementChildren
+        , getAttributes
+        , getChildren
           -- rendering
         , toString
           -- modifying info
@@ -89,8 +89,8 @@ getElementName node =
             Just xmlElement.name
 
 
-getElementAttributes : XmlNode -> List Attribute
-getElementAttributes node =
+getAttributes : XmlNode -> List Attribute
+getAttributes node =
     case node of
         Text _ ->
             []
@@ -99,8 +99,8 @@ getElementAttributes node =
             xmlElement.attributes
 
 
-getElementChildren : XmlNode -> List XmlNode
-getElementChildren node =
+getChildren : XmlNode -> List XmlNode
+getChildren node =
     case node of
         Text _ ->
             []
