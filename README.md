@@ -23,7 +23,7 @@ type alias Person =
 
 personToXml : Person -> String
 personToXml person =
-    X.toString 0 2 <| -- 0 means indent starting from `0' and using 2 spaces for indentation
+    X.toString 0 <| -- 0 means indent starting from `0'
         X.element "Person"
             [ ("isAdmin", toString person.isAdmin) ]
             [ X.element "Name" [] [ X.text person.name ]
