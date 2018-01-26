@@ -9,8 +9,10 @@ import XmlNode as X
 xml : Test
 xml =
     describe "I can create nodes"
-        [ fuzz F.string "I can create text nodes" <|
-            \text -> testTextNode text
+        [ describe "I can create text nodes"
+            [ fuzz F.string "Creating text nodes" <|
+                \text -> testTextNode text <| X.escape text
+            ]
         , describe "I can create elements"
             [ test "I can create empty element" <|
                 \_ -> testEmptyElement
@@ -18,10 +20,10 @@ xml =
                 \_ -> testNameOnlyElements
             , test "I can create elements with attributes" <|
                 \_ -> testElementsWithAttributes
-            , test "Attribute values are url encoded" <|
-                \_ -> testElementsWithAttributesUrlEncoded
+            , test "Attribute values are xml excaped" <|
+                \_ -> testElementsWithAttributesXmlEscaped
             , fuzz F.string "I can create elements with single text child" <|
-                \text -> testElementsWithTextChild text
+                \text -> testElementsWithTextChild text <| X.escape text
             , test "I can create elements with single element child" <|
                 \_ -> testElementsWithElementChild
             , test "I can create elements with multiple children" <|
@@ -44,12 +46,12 @@ xml =
         ]
 
 
-testTextNode : String -> Expect.Expectation
-testTextNode text =
+testTextNode : String -> String -> Expect.Expectation
+testTextNode text expected =
     text
         |> X.text
         |> X.toString 0
-        |> Expect.equal text
+        |> Expect.equal expected
 
 
 testEmptyElement : Expect.Expectation
@@ -73,18 +75,18 @@ testElementsWithAttributes =
         |> Expect.equal "<name attr1=\"val1\" attr2=\"val2\"/>"
 
 
-testElementsWithAttributesUrlEncoded : Expect.Expectation
-testElementsWithAttributesUrlEncoded =
+testElementsWithAttributesXmlEscaped : Expect.Expectation
+testElementsWithAttributesXmlEscaped =
     X.element "name" [ ( "attr1", "value\"" ) ] []
         |> X.toString 0
-        |> Expect.equal "<name attr1=\"value%22\"/>"
+        |> Expect.equal "<name attr1=\"value&quot;\"/>"
 
 
-testElementsWithTextChild : String -> Expect.Expectation
-testElementsWithTextChild text =
+testElementsWithTextChild : String -> String -> Expect.Expectation
+testElementsWithTextChild text expected =
     X.element "name" [] [ X.text text ]
         |> X.toString 0
-        |> Expect.equal ("<name>" ++ text ++ "</name>")
+        |> Expect.equal ("<name>" ++ expected ++ "</name>")
 
 
 testElementsWithElementChild : Expect.Expectation

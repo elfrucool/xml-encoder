@@ -1,14 +1,14 @@
 module XmlNode.ToString exposing (..)
 
-import Http exposing (encodeUri)
 import XmlNode.Types exposing (..)
+import XmlNode.Util as U
 
 
 toString : Int -> XmlNode -> String
 toString indentation node =
     case node of
         Text string ->
-            string
+            U.escape string
 
         Element element ->
             elementToString indentation element
@@ -75,7 +75,7 @@ attributesToString attributes =
 
 singleAttributeToString : Attribute -> String
 singleAttributeToString ( key, value ) =
-    key ++ "=\"" ++ (encodeUri value) ++ "\""
+    key ++ "=\"" ++ (U.escapeAttribute value) ++ "\""
 
 
 indent : Int -> String

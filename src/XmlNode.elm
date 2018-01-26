@@ -10,11 +10,14 @@ module XmlNode
         , addAttributes
         , setChildren
         , addChildren
+        , escape
+        , escapeAttribute
         )
 
 import XmlNode.Types as T
 import XmlNode.Types exposing (..)
 import XmlNode.ToString as S
+import XmlNode.Util as U
 
 
 type alias Attribute =
@@ -97,3 +100,17 @@ addChildren children node =
 
         Element xmlElement ->
             setChildren (xmlElement.children ++ children) node
+
+
+
+-- UTIL FUNCTIONS
+
+
+escape : String -> String
+escape =
+    U.escape
+
+
+escapeAttribute : String -> String
+escapeAttribute =
+    U.escapeAttribute
