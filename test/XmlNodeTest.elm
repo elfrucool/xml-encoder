@@ -31,7 +31,15 @@ xml =
             ]
         , describe "I can get new elements modifying old elements"
             [ test "I can set a name to an element" <|
-                \_ -> testUpdateElementName
+                \_ -> testUpdateElementSetName
+            , test "I can set attributes to an element" <|
+                \_ -> testUpdateElementSetAttributes
+            , test "I can add attributes to an element" <|
+                \_ -> testUpdateElementAddAttributes
+            , test "I can set children to an element" <|
+                \_ -> testUpdateElementSetChildren
+            , test "I can add children to an element" <|
+                \_ -> testUpdateElementAddChildren
             ]
         ]
 
@@ -158,9 +166,41 @@ testNestedChildrenElements_expected =
       """ |> String.trim
 
 
-testUpdateElementName : Expect.Expectation
-testUpdateElementName =
+testUpdateElementSetName : Expect.Expectation
+testUpdateElementSetName =
     X.empty
         |> X.setName "Name"
         |> X.toString 0
         |> Expect.equal "<Name/>"
+
+
+testUpdateElementSetAttributes : Expect.Expectation
+testUpdateElementSetAttributes =
+    X.empty
+        |> X.setAttributes [ ( "attr", "value" ) ]
+        |> X.toString 0
+        |> Expect.equal "< attr=\"value\"/>"
+
+
+testUpdateElementAddAttributes : Expect.Expectation
+testUpdateElementAddAttributes =
+    X.element "Node" [ ( "attr1", "value1" ) ] []
+        |> X.addAttributes [ ( "attr2", "value2" ) ]
+        |> X.toString 0
+        |> Expect.equal "<Node attr1=\"value1\" attr2=\"value2\"/>"
+
+
+testUpdateElementSetChildren : Expect.Expectation
+testUpdateElementSetChildren =
+    X.element "Node" [] []
+        |> X.setChildren [ X.element "Foo" [] [] ]
+        |> X.toString 0
+        |> Expect.equal "<Node>\n  <Foo/>\n</Node>"
+
+
+testUpdateElementAddChildren : Expect.Expectation
+testUpdateElementAddChildren =
+    X.element "Node" [] [ X.element "Foo" [] [] ]
+        |> X.addChildren [ X.text "hello" ]
+        |> X.toString 0
+        |> Expect.equal "<Node>\n  <Foo/>\n  hello\n</Node>"
