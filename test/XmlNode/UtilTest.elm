@@ -1,7 +1,7 @@
 module XmlNode.UtilTest exposing (..)
 
 import Expect
-import Test exposing (Test, test, describe)
+import Test exposing (Test, test, describe, todo)
 import XmlNode.Util as U
 
 
@@ -34,4 +34,18 @@ testEscapeAttribute =
             \_ ->
                 Expect.equal "&amp;&lt;&gt;&quot;" <|
                     U.escapeAttribute "&<>\""
+        ]
+
+
+testIsNumeric : Test
+testIsNumeric =
+    describe "isNumeric determines if a string is numeric"
+        [ test "isNumeric: empty string" <|
+            \_ -> Expect.false "'' should be false" <| U.isNumeric ""
+        , test "isNumeric: single digit" <|
+            \_ -> Expect.true "'1' should be true" <| U.isNumeric "1"
+        , test "isNumeric: single letter" <|
+            \_ -> Expect.false "'a' should be false" <| U.isNumeric "a"
+        , test "isNumeric: many numbers and letters" <|
+            \_ -> Expect.false "'12a34' should be false" <| U.isNumeric "12a34"
         ]

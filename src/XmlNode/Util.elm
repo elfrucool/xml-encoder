@@ -1,5 +1,6 @@
-module XmlNode.Util exposing (escape, escapeAttribute)
+module XmlNode.Util exposing (escape, escapeAttribute, isNumeric)
 
+import Char
 import String.Extra as StringExtra
 
 
@@ -16,3 +17,13 @@ escapeAttribute s =
     s
         |> escape
         |> StringExtra.replace "\"" "&quot;"
+
+
+isNumeric : String -> Bool
+isNumeric s =
+    case (String.uncons s) of
+        Nothing ->
+            False
+
+        Just _ ->
+            String.all Char.isDigit s
