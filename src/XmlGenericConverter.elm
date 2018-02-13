@@ -66,13 +66,6 @@ type alias XmlNode =
 
 
 {-| Its a node thay may be an xml element, an xml attribute, or nothing.
-
-It is its definition:
-
-    type Node
-        = None
-        | Element XmlNode
-        | Attribute ( String, String )
 -}
 type Node
     = None
