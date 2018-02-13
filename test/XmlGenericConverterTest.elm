@@ -113,7 +113,7 @@ getXmlNodeScenarios =
     describe "getXmlNode scenarios"
         [ test "getXmlNode: None -> Nothing" <|
             \_ -> testGetXmlNode ( [ "a", "b" ], C.None ) Nothing
-        , test "getXmlNode: Attribuge -> Nothing" <|
+        , test "getXmlNode: Attribute -> Nothing" <|
             \_ ->
                 testGetXmlNode ( [ "a", "b" ], C.Attribute ( "A", "v" ) ) <|
                     Nothing

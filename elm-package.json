@@ -7,7 +7,8 @@
         "src"
     ],
     "exposed-modules": [
-        "XmlNode"
+        "XmlNode",
+        "XmlGenericConverter"
     ],
     "dependencies": {
         "elm-community/list-extra": "7.1.0 <= v < 8.0.0",
