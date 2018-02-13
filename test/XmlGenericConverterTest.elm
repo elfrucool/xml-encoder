@@ -3,6 +3,7 @@ module XmlGenericConverterTest exposing (..)
 import Test exposing (..)
 import Expect
 import XmlGenericConverter as C
+import XmlNode as X
 
 
 testPreparation : Test
@@ -45,6 +46,22 @@ testPreparation =
             , test "getPath: (['x', 'y'], 'a') -> (['x'], (Just 'y', 'a'))" <|
                 \_ -> testGetPath ( [ "x", "y" ], "a" ) ( [ "x" ], ( Just "y", "a" ) )
             ]
+        , describe "toNode: (['a', 'b'], (Just 'c', 'v')) -> (['a', 'b'], Just x'<c>v</c>')"
+            [ test "toNode: ([], (Nothing, '')) -> ([], None)" <|
+                \_ -> testToNode ( [], ( Nothing, "" ) ) ( [], C.None )
+            , test "toNode: ([], (Just 'x', 'a')) -> ([], Element '<x>a</x>')" <|
+                \_ ->
+                    testToNode ( [], ( Just "x", "a" ) )
+                        ( [], C.Element (X.element "x" [] [ X.text "a" ]) )
+            , test "toNode: (['p'], (Just 'x', 'a')) -> (['p'], Element x'<x>a</x>')" <|
+                \_ ->
+                    testToNode ( [ "p" ], ( Just "x", "a" ) )
+                        ( [ "p" ], C.Element (X.element "x" [] [ X.text "a" ]) )
+            , test "toNode: (['p'], (Just '@x', 'a')) -> (['p'], Attribute 'x'='a')" <|
+                \_ ->
+                    testToNode ( [ "p" ], ( Just "@x", "a" ) )
+                        ( [ "p" ], C.Attribute ( "x", "a" ) )
+            ]
         ]
 
 
@@ -66,4 +83,11 @@ testGetPath : C.TokensValue -> C.PathFieldValue -> Expect.Expectation
 testGetPath input expected =
     input
         |> C.getPath
+        |> Expect.equal expected
+
+
+testToNode : C.PathFieldValue -> C.PathNode -> Expect.Expectation
+testToNode input expected =
+    input
+        |> C.toNode
         |> Expect.equal expected
