@@ -46,14 +46,14 @@ testPreparation =
             , test "getPath: (['x', 'y'], 'a') -> (['x'], (Just 'y', 'a'))" <|
                 \_ -> testGetPath ( [ "x", "y" ], "a" ) ( [ "x" ], ( Just "y", "a" ) )
             ]
-        , describe "toNode: (['a', 'b'], (Just 'c', 'v')) -> (['a', 'b'], Just x'<c>v</c>')"
+        , describe "toNode: (['a', 'b'], (Just 'c', 'v')) -> (['a', 'b'], Element '<c>v</c>')"
             [ test "toNode: ([], (Nothing, '')) -> ([], None)" <|
                 \_ -> testToNode ( [], ( Nothing, "" ) ) ( [], C.None )
             , test "toNode: ([], (Just 'x', 'a')) -> ([], Element '<x>a</x>')" <|
                 \_ ->
                     testToNode ( [], ( Just "x", "a" ) )
                         ( [], C.Element (X.element "x" [] [ X.text "a" ]) )
-            , test "toNode: (['p'], (Just 'x', 'a')) -> (['p'], Element x'<x>a</x>')" <|
+            , test "toNode: (['p'], (Just 'x', 'a')) -> (['p'], Element '<x>a</x>')" <|
                 \_ ->
                     testToNode ( [ "p" ], ( Just "x", "a" ) )
                         ( [ "p" ], C.Element (X.element "x" [] [ X.text "a" ]) )
@@ -61,6 +61,26 @@ testPreparation =
                 \_ ->
                     testToNode ( [ "p" ], ( Just "@x", "a" ) )
                         ( [ "p" ], C.Attribute ( "x", "a" ) )
+            ]
+        , describe "convertSingleItem: (key,value) -> (Path, Element '<x>value</x>')"
+            [ test "convertSingleItem: None" <|
+                \_ -> testConvertSingleItem ( "1_2_3", "value" ) ( [], C.None )
+            , test "convertSingleItem: element" <|
+                \_ ->
+                    testConvertSingleItem ( "A_B", "v" )
+                        ( [ "A" ], makeNodeElement "B" "v" )
+            , test "convertSingleItem: attribute" <|
+                \_ ->
+                    testConvertSingleItem ( "A_B_@c", "v" )
+                        ( [ "A", "B" ], C.Attribute ( "c", "v" ) )
+            ]
+        , describe "convert: transform key-values to reduced Node"
+            [ test "convert: attempt 1: func returns the root item" <|
+                \_ -> testConvert alwaysPrevious (makeEmptyPathNode "ParentOfRoot")
+            , test "convert: attempt 2: func returns the last item" <|
+                \_ ->
+                    testConvert alwaysNext <|
+                        ( [ "Root" ], makeNodeElement "Node3" "node 3 value" )
             ]
         ]
 
@@ -91,3 +111,53 @@ testToNode input expected =
     input
         |> C.toNode
         |> Expect.equal expected
+
+
+testConvertSingleItem : C.KeyValue -> C.PathNode -> Expect.Expectation
+testConvertSingleItem input expected =
+    input
+        |> C.convertSingleItem
+        |> Expect.equal expected
+
+
+testConvert : C.ReduceFunc -> C.PathNode -> Expect.Expectation
+testConvert reduceFunc expected =
+    makeConvertInput
+        |> C.convert (makeEmptyPathNode "ParentOfRoot") reduceFunc
+        |> Expect.equal expected
+
+
+alwaysPrevious : C.ReduceFunc
+alwaysPrevious next previous =
+    previous
+
+
+alwaysNext : C.ReduceFunc
+alwaysNext next previous =
+    next
+
+
+makeEmptyPathNode : String -> C.PathNode
+makeEmptyPathNode name =
+    ( [], makeNodeElementWithoutValue name )
+
+
+makeNodeElementWithoutValue : String -> C.Node
+makeNodeElementWithoutValue name =
+    makeNodeElement name ""
+
+
+makeNodeElement : String -> String -> C.Node
+makeNodeElement name value =
+    C.Element <| X.element name [] [ X.text value ]
+
+
+makeConvertInput : List C.KeyValue
+makeConvertInput =
+    [ ( "Root_Node1", "node 1 value" )
+    , ( "Root_Node2", "node 2 value" )
+    , ( "", "filter out me" )
+    , ( "Root_Node2_@attr", "node 2 attr value" )
+    , ( "Root_Node3_1", "node 3 value" )
+    , ( "", "filter out me" )
+    ]

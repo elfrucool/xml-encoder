@@ -5,10 +5,13 @@ module XmlGenericConverter
         , PathFieldValue
         , Node(..)
         , PathNode
+        , ReduceFunc
         , tokenize
         , removeNumericTokens
         , getPath
         , toNode
+        , convertSingleItem
+        , convert
         )
 
 import XmlNode.Util as U
@@ -42,6 +45,10 @@ type alias PathNode =
     ( List String, Node )
 
 
+type alias ReduceFunc =
+    PathNode -> PathNode -> PathNode
+
+
 tokenize : KeyValue -> TokensValue
 tokenize ( key, value ) =
     ( String.split "_" key
@@ -73,15 +80,30 @@ toNode : PathFieldValue -> PathNode
 toNode ( path, ( maybeField, value ) ) =
     case maybeField of
         Just field ->
-            ( path, makeElement field value )
+            ( path, makeElement_ field value )
 
         Nothing ->
             ( [], None )
 
 
-makeElement : String -> String -> Node
-makeElement field value =
+makeElement_ : String -> String -> Node
+makeElement_ field value =
     if String.startsWith "@" field then
         Attribute ( String.dropLeft 1 field, value )
     else
         Element (X.element field [] [ X.text value ])
+
+
+convertSingleItem : KeyValue -> PathNode
+convertSingleItem =
+    tokenize
+        >> removeNumericTokens
+        >> getPath
+        >> toNode
+
+
+convert : PathNode -> ReduceFunc -> List KeyValue -> PathNode
+convert root reduceFunc =
+    List.map convertSingleItem
+        >> List.filter (\( _, n ) -> n /= None)
+        >> List.foldl reduceFunc root
