@@ -35,7 +35,16 @@ testPreparation =
                         ( [ "a", "1", "2", "b" ], "a" )
                         ( [ "a", "b" ], "a" )
             ]
-        , todo "getPath: (['a', 'b', 'c'], 'v') -> (['a', 'b'], (Just 'c', 'v'))"
+        , describe "getPath: (['a', 'b', 'c'], 'v') -> (['a', 'b'], (Just 'c', 'v'))"
+            [ test "getPath: ([], '') -> ([], (Nothing, ''))" <|
+                \_ -> testGetPath ( [], "" ) ( [], ( Nothing, "" ) )
+            , test "getPath: ([], 'a') -> ([], (Nothing, 'a'))" <|
+                \_ -> testGetPath ( [], "a" ) ( [], ( Nothing, "a" ) )
+            , test "getPath: (['x'], 'a') -> ([], (Just 'x', 'a'))" <|
+                \_ -> testGetPath ( [ "x" ], "a" ) ( [], ( Just "x", "a" ) )
+            , test "getPath: (['x', 'y'], 'a') -> (['x'], (Just 'y', 'a'))" <|
+                \_ -> testGetPath ( [ "x", "y" ], "a" ) ( [ "x" ], ( Just "y", "a" ) )
+            ]
         ]
 
 
@@ -50,4 +59,11 @@ testRemoveNumericTokens : C.TokensValue -> C.TokensValue -> Expect.Expectation
 testRemoveNumericTokens input expected =
     input
         |> C.removeNumericTokens
+        |> Expect.equal expected
+
+
+testGetPath : C.TokensValue -> C.PathFieldValue -> Expect.Expectation
+testGetPath input expected =
+    input
+        |> C.getPath
         |> Expect.equal expected
