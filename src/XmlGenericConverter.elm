@@ -12,6 +12,7 @@ module XmlGenericConverter
         , toNode
         , convertSingleItem
         , convert
+        , getXmlNode
         )
 
 import XmlNode.Util as U
@@ -107,3 +108,13 @@ convert root reduceFunc =
     List.map convertSingleItem
         >> List.filter (\( _, n ) -> n /= None)
         >> List.foldl reduceFunc root
+
+
+getXmlNode : PathNode -> Maybe X.XmlNode
+getXmlNode ( _, node ) =
+    case node of
+        Element element ->
+            Just element
+
+        _ ->
+            Nothing

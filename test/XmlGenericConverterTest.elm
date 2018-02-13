@@ -6,6 +6,9 @@ import XmlGenericConverter as C
 import XmlNode as X
 
 
+-- TEST SUITES
+
+
 tokenizeScenarios : Test
 tokenizeScenarios =
     describe "tokenize: from (k,v) to ([tokens], v)"
@@ -105,6 +108,26 @@ convertScenarios =
         ]
 
 
+getXmlNodeScenarios : Test
+getXmlNodeScenarios =
+    describe "getXmlNode scenarios"
+        [ test "getXmlNode: None -> Nothing" <|
+            \_ -> testGetXmlNode ( [ "a", "b" ], C.None ) Nothing
+        , test "getXmlNode: Attribuge -> Nothing" <|
+            \_ ->
+                testGetXmlNode ( [ "a", "b" ], C.Attribute ( "A", "v" ) ) <|
+                    Nothing
+        , test "getXmlNode: Element -> XmlNode" <|
+            \_ ->
+                testGetXmlNode ( [ "a", "b" ], makeNodeElement "A" "v" ) <|
+                    Just (X.element "A" [] [ X.text "v" ])
+        ]
+
+
+
+-- TEST FUNCTIONS
+
+
 testTokenize : C.KeyValue -> C.TokensValue -> Expect.Expectation
 testTokenize input expected =
     input
@@ -145,6 +168,17 @@ testConvert reduceFunc expected =
     makeConvertInput
         |> C.convert (makeEmptyPathNode "ParentOfRoot") reduceFunc
         |> Expect.equal expected
+
+
+testGetXmlNode : C.PathNode -> Maybe X.XmlNode -> Expect.Expectation
+testGetXmlNode input expected =
+    input
+        |> C.getXmlNode
+        |> Expect.equal expected
+
+
+
+-- HELPER FUNCTIONS
 
 
 alwaysPrevious : C.ReduceFunc
