@@ -44,17 +44,17 @@ removeNumericTokensScenarios =
         ]
 
 
-getPathScenarios : Test
-getPathScenarios =
-    describe "getPath: (['a', 'b', 'c'], 'v') -> (['a', 'b'], (Just 'c', 'v'))"
-        [ test "getPath: ([], '') -> ([], (Nothing, ''))" <|
-            \_ -> testGetPath ( [], "" ) ( [], ( Nothing, "" ) )
-        , test "getPath: ([], 'a') -> ([], (Nothing, 'a'))" <|
-            \_ -> testGetPath ( [], "a" ) ( [], ( Nothing, "a" ) )
-        , test "getPath: (['x'], 'a') -> ([], (Just 'x', 'a'))" <|
-            \_ -> testGetPath ( [ "x" ], "a" ) ( [], ( Just "x", "a" ) )
-        , test "getPath: (['x', 'y'], 'a') -> (['x'], (Just 'y', 'a'))" <|
-            \_ -> testGetPath ( [ "x", "y" ], "a" ) ( [ "x" ], ( Just "y", "a" ) )
+addPathScenarios : Test
+addPathScenarios =
+    describe "addPath: (['a', 'b', 'c'], 'v') -> (['a', 'b'], (Just 'c', 'v'))"
+        [ test "addPath: ([], '') -> ([], (Nothing, ''))" <|
+            \_ -> testAddPath ( [], "" ) ( [], ( Nothing, "" ) )
+        , test "addPath: ([], 'a') -> ([], (Nothing, 'a'))" <|
+            \_ -> testAddPath ( [], "a" ) ( [], ( Nothing, "a" ) )
+        , test "addPath: (['x'], 'a') -> ([], (Just 'x', 'a'))" <|
+            \_ -> testAddPath ( [ "x" ], "a" ) ( [], ( Just "x", "a" ) )
+        , test "addPath: (['x', 'y'], 'a') -> (['x'], (Just 'y', 'a'))" <|
+            \_ -> testAddPath ( [ "x", "y" ], "a" ) ( [ "x" ], ( Just "y", "a" ) )
         ]
 
 
@@ -86,7 +86,7 @@ convertSingleItemScenarios =
         , test "convertSingleItem: element" <|
             \_ ->
                 testConvertSingleItem ( "A_B", "v" )
-                    ( [ "A" ], makeNodeElement "B" "v" )
+                    ( [ "A" ], C.makeNodeValueElement "B" "v" )
         , test "convertSingleItem: attribute" <|
             \_ ->
                 testConvertSingleItem ( "A_B_@c", "v" )
@@ -103,8 +103,47 @@ convertScenarios =
             , test "convert: attempt 2: func returns the last item" <|
                 \_ ->
                     testConvert alwaysNext <|
-                        ( [ "Root" ], makeNodeElement "Node3" "node 3 value" )
+                        ( [ "Root" ], C.makeNodeValueElement "Node3" "node 3 value" )
             ]
+        ]
+
+
+isElementScenarios : Test
+isElementScenarios =
+    describe "isElement determines whether a Node is an elemement"
+        [ test "isElement None --> False" <|
+            \_ -> Expect.false "None is not an element" <| C.isElement C.None
+        , test "isElement Element --> True" <|
+            \_ ->
+                Expect.true "Element is an element" <|
+                    C.isElement <|
+                        C.Element X.empty
+        , test "isElement Attribute --> False" <|
+            \_ ->
+                Expect.false "Attribute is not an element" <|
+                    C.isElement <|
+                        C.Attribute ( "foo", "bar" )
+        ]
+
+
+getNodeScenarios : Test
+getNodeScenarios =
+    describe "getNodeScenarios"
+        [ test "getNode None" <|
+            \_ ->
+                ( [], C.None )
+                    |> C.getNode
+                    |> Expect.equal C.None
+        , test "getNode Attribute" <|
+            \_ ->
+                ( [], C.Attribute ( "attr", "value" ) )
+                    |> C.getNode
+                    |> Expect.equal (C.Attribute ( "attr", "value" ))
+        , test "getNode Element" <|
+            \_ ->
+                ( [], C.Element (X.empty) )
+                    |> C.getNode
+                    |> Expect.equal (C.Element (X.empty))
         ]
 
 
@@ -112,15 +151,30 @@ getXmlNodeScenarios : Test
 getXmlNodeScenarios =
     describe "getXmlNode scenarios"
         [ test "getXmlNode: None -> Nothing" <|
-            \_ -> testGetXmlNode ( [ "a", "b" ], C.None ) Nothing
+            \_ -> testGetXmlNode C.None Nothing
         , test "getXmlNode: Attribute -> Nothing" <|
             \_ ->
-                testGetXmlNode ( [ "a", "b" ], C.Attribute ( "A", "v" ) ) <|
-                    Nothing
+                testGetXmlNode (C.Attribute ( "A", "v" )) Nothing
         , test "getXmlNode: Element -> XmlNode" <|
             \_ ->
-                testGetXmlNode ( [ "a", "b" ], makeNodeElement "A" "v" ) <|
+                testGetXmlNode (C.makeNodeValueElement "A" "v") <|
                     Just (X.element "A" [] [ X.text "v" ])
+        ]
+
+
+getAttributeScenarios : Test
+getAttributeScenarios =
+    describe "getAttribute scenarios"
+        [ test "getAttribute None -> Nothing" <|
+            \_ -> testGetAttribute ( [ "a", "b" ], C.None ) Nothing
+        , test "getAttribute Attribute -> Just ('attr', 'value')" <|
+            \_ ->
+                testGetAttribute ( [ "a", "b" ], C.Attribute ( "attr", "value" ) ) <|
+                    Just ( "attr", "value" )
+        , test "getAttribute Element -> Nothing" <|
+            \_ ->
+                testGetAttribute ( [ "a", "b" ], C.Element X.empty ) <|
+                    Nothing
         ]
 
 
@@ -142,10 +196,10 @@ testRemoveNumericTokens input expected =
         |> Expect.equal expected
 
 
-testGetPath : C.TokensValue -> C.PathFieldValue -> Expect.Expectation
-testGetPath input expected =
+testAddPath : C.TokensValue -> C.PathFieldValue -> Expect.Expectation
+testAddPath input expected =
     input
-        |> C.getPath
+        |> C.addPath
         |> Expect.equal expected
 
 
@@ -170,10 +224,17 @@ testConvert reduceFunc expected =
         |> Expect.equal expected
 
 
-testGetXmlNode : C.PathNode -> Maybe X.XmlNode -> Expect.Expectation
+testGetXmlNode : C.Node -> Maybe X.XmlNode -> Expect.Expectation
 testGetXmlNode input expected =
     input
         |> C.getXmlNode
+        |> Expect.equal expected
+
+
+testGetAttribute : C.PathNode -> Maybe ( String, String ) -> Expect.Expectation
+testGetAttribute input expected =
+    input
+        |> C.getAttribute
         |> Expect.equal expected
 
 
@@ -198,12 +259,7 @@ makeEmptyPathNode name =
 
 makeNodeElementWithoutValue : String -> C.Node
 makeNodeElementWithoutValue name =
-    makeNodeElement name ""
-
-
-makeNodeElement : String -> String -> C.Node
-makeNodeElement name value =
-    C.Element <| X.element name [] [ X.text value ]
+    C.makeNodeValueElement name ""
 
 
 makeConvertInput : List C.KeyValue

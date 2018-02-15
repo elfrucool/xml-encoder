@@ -8,11 +8,15 @@ module XmlGenericConverter
         , ReduceFunc
         , tokenize
         , removeNumericTokens
-        , getPath
+        , addPath
         , toNode
         , convertSingleItem
         , convert
+        , getNode
+        , getAttribute
         , getXmlNode
+        , isElement
+        , makeNodeValueElement
         )
 
 {-| This library aims to convert a key-value list to
@@ -22,10 +26,13 @@ an XmlNode using a reduce function based on convention.
 @docs KeyValue, TokensValue, PathFieldValue, Node, PathNode, ReduceFunc
 
 # Tranform functions
-@docs tokenize, removeNumericTokens, getPath, toNode, convertSingleItem, convert
+@docs tokenize, removeNumericTokens, addPath, toNode, convertSingleItem, convert
 
-# Extract final value function
-@docs getXmlNode
+# Extract final value functions
+@docs getXmlNode, getAttribute, getNode
+
+# Misc functions
+@docs isElement, makeNodeValueElement
 
 -}
 
@@ -121,14 +128,14 @@ removeNumericTokens ( tokens, value ) =
 {-| Transforms a token list with value to a tuple with parent values
 and a key-value tuple, but the key may not be present.
 
-    getPath (["A", "B"], "value") -- returns (["A"], (Just "B", "value"))
+    addPath (["A", "B"], "value") -- returns (["A"], (Just "B", "value"))
 
-    getPath (["A"], "value") -- returns ([], (Just "A", "value"))
+    addPath (["A"], "value") -- returns ([], (Just "A", "value"))
 
-    getPath ([], "value") -- returns ([], (Nothing, "value"))
+    addPath ([], "value") -- returns ([], (Nothing, "value"))
 -}
-getPath : TokensValue -> PathFieldValue
-getPath ( tokens, value ) =
+addPath : TokensValue -> PathFieldValue
+addPath ( tokens, value ) =
     let
         xs =
             Maybe.withDefault [] <| LE.init tokens
@@ -178,7 +185,7 @@ convertSingleItem : KeyValue -> PathNode
 convertSingleItem =
     tokenize
         >> removeNumericTokens
-        >> getPath
+        >> addPath
         >> toNode
 
 
@@ -196,18 +203,64 @@ convert root reduceFunc =
         >> List.foldl reduceFunc root
 
 
-{-| Extracts the XmlNode from a PathNode, since it may be not present, then
+{-| Gets the node inside a path node.
+
+    getNode ([], C.None)
+-}
+getNode : PathNode -> Node
+getNode ( _, node ) =
+    node
+
+
+{-| Extract Attribute from PathNode.
+
+    getAttribute ([], Attribute ("key", "value"))
+-}
+getAttribute : PathNode -> Maybe ( String, String )
+getAttribute ( _, node ) =
+    case node of
+        Attribute attr ->
+            Just attr
+
+        _ ->
+            Nothing
+
+
+{-| Extracts the XmlNode from a Node, since it may be not present, then
 it is wrapped in Maybe.
 
-    getXmlNode (["a"], Element (X.element "element" [] []))
+    getXmlNode Element (X.element "element" [] [])
 
 The example avobe will return Just (X.element "element" [] [])
 -}
-getXmlNode : PathNode -> Maybe X.XmlNode
-getXmlNode ( _, node ) =
+getXmlNode : Node -> Maybe X.XmlNode
+getXmlNode node =
     case node of
         Element element ->
             Just element
 
         _ ->
             Nothing
+
+
+{-| If node is Element then returns True, otherwise false.
+
+    isElement None -- will return False
+-}
+isElement : Node -> Bool
+isElement node =
+    case node of
+        Element _ ->
+            True
+
+        _ ->
+            False
+
+
+{-| Makes a Node Element with no attributes and a single text child.
+
+    makeNodeValueElement "NodeName" "Value"
+-}
+makeNodeValueElement : String -> String -> Node
+makeNodeValueElement name value =
+    Element <| X.element name [] [ X.text value ]
