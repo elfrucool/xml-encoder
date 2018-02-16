@@ -46,7 +46,27 @@ mergeScenarios =
                 testMerge
                     ( [], C.Attribute ( "attr", "value" ) )
                     ( [], C.Element (X.element "node" [] []) )
-                    ( [], C.Element (X.element "node" [ ( "attr", "value" ) ] []) )
+                    ( []
+                    , C.Element (X.element "node" [ ( "attr", "value" ) ] [])
+                    )
+        , skip <|
+            test "merge 7: non-empty path, actual=element, previous can reach actual" <|
+                \_ ->
+                    testMerge
+                        ( [ "Parent" ], C.makeNodeValueElement "Child" "value" )
+                        ( []
+                        , C.Element <|
+                            X.element "root" [] [ X.element "Parent" [] [] ]
+                        )
+                        ( []
+                        , C.Element <|
+                            X.element "root"
+                                []
+                                [ X.element "Parent"
+                                    []
+                                    [ X.element "Child" [] [ X.text "value" ] ]
+                                ]
+                        )
         ]
 
 

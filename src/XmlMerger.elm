@@ -19,28 +19,33 @@ on its type.
     merge child parent
 -}
 merge : C.PathNode -> C.PathNode -> C.PathNode
-merge ( curPath, curNode ) ( prevPath, prevNode ) =
+merge curPathNode ( prevPath, prevNode ) =
     let
         prevXmlNode =
             C.getXmlNode prevNode
     in
         if C.isElement prevNode then
-            ( [], maybeAppendNode curNode prevXmlNode )
+            ( [], maybeAppendNode curPathNode prevXmlNode )
         else
             ( [], C.None )
 
 
-maybeAppendNode : C.Node -> Maybe X.XmlNode -> C.Node
-maybeAppendNode curNode maybePrevXmlNode =
+maybeAppendNode : C.PathNode -> Maybe X.XmlNode -> C.Node
+maybeAppendNode curPathNode maybePrevXmlNode =
     maybeToNode <|
         ME.orElse maybePrevXmlNode <|
             Maybe.andThen
-                (appendNode curNode)
+                (appendNode curPathNode)
                 maybePrevXmlNode
 
 
-appendNode : C.Node -> X.XmlNode -> Maybe X.XmlNode
-appendNode curNode prevXmlNode =
+appendNode : C.PathNode -> X.XmlNode -> Maybe X.XmlNode
+appendNode ( curPath, curNode ) prevXmlNode =
+    appendNodeToLeaf curNode prevXmlNode
+
+
+appendNodeToLeaf : C.Node -> X.XmlNode -> Maybe X.XmlNode
+appendNodeToLeaf curNode prevXmlNode =
     case curNode of
         C.None ->
             Nothing
