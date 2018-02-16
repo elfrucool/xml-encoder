@@ -42,7 +42,7 @@ string representation of them.
 @docs toString
 
 # Modifying info functions
-@docs setName, setAttributes, addAttributes, setChildren, addChildren
+@docs setName, setAttributes, addAttributes, setChildren, addChildren, replaceChildAt
 
 # Utility functions
 @docs escape, escapeAttribute
