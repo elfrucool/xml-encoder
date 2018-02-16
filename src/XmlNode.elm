@@ -20,6 +20,7 @@ module XmlNode
         , addAttributes
         , setChildren
         , addChildren
+        , replaceChildAt
           -- util functions
         , escape
         , escapeAttribute
@@ -52,6 +53,7 @@ import XmlNode.Types as T
 import XmlNode.Types exposing (..)
 import XmlNode.ToString as S
 import XmlNode.Util as U
+import List.Extra as LE
 
 
 -- EXPORTING TYPES FROM ANOTHER MODULE
@@ -274,6 +276,20 @@ addChildren children node =
 
         Element xmlElement ->
             setChildren (xmlElement.children ++ children) node
+
+
+{-| Replaces a child at position given by an index to the provided one.
+It does nothing if the index is out of range.
+
+    replaceChildAt 0 modified original
+
+-}
+replaceChildAt : Int -> XmlNode -> XmlNode -> XmlNode
+replaceChildAt index replacement node =
+    node
+        |> getChildren
+        |> LE.setAt index replacement
+        |> flip setChildren node
 
 
 

@@ -1,6 +1,6 @@
 module XmlNodeTest exposing (xml)
 
-import Test exposing (Test, describe, test, fuzz)
+import Test exposing (..)
 import Fuzz as F
 import Expect
 import XmlNode as X
@@ -42,6 +42,8 @@ xml =
                 \_ -> testUpdateElementSetChildren
             , test "I can add children to an element" <|
                 \_ -> testUpdateElementAddChildren
+            , test "I can replace a children at a specific index" <|
+                \_ -> testUpdateElementReplaceChildAt
             ]
         , describe "I can get data from nodes"
             [ test "I can get text from text element" <|
@@ -230,6 +232,30 @@ testUpdateElementAddChildren =
         |> X.addChildren [ X.text "hello" ]
         |> X.toString 0
         |> Expect.equal "<Node>\n  <Foo/>\n  hello\n</Node>"
+
+
+testUpdateElementReplaceChildAt : Expect.Expectation
+testUpdateElementReplaceChildAt =
+    let
+        original =
+            X.element "Node"
+                []
+                [ X.element "Foo" [] []
+                , X.text "bar"
+                , X.element "Baz" [] []
+                ]
+
+        expected =
+            X.element "Node"
+                []
+                [ X.element "Foo" [] []
+                , X.text "replaced"
+                , X.element "Baz" [] []
+                ]
+    in
+        original
+            |> X.replaceChildAt 1 (X.text "replaced")
+            |> Expect.equal expected
 
 
 testGetText : X.XmlNode -> Maybe String -> Expect.Expectation
