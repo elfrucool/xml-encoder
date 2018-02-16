@@ -163,14 +163,14 @@ toNode : PathFieldValue -> PathNode
 toNode ( path, ( maybeField, value ) ) =
     case maybeField of
         Just field ->
-            ( path, makeElement_ field value )
+            ( path, makeNode_ field value )
 
         Nothing ->
             ( [], None )
 
 
-makeElement_ : String -> String -> Node
-makeElement_ field value =
+makeNode_ : String -> String -> Node
+makeNode_ field value =
     if String.startsWith "@" field then
         Attribute ( String.dropLeft 1 field, value )
     else

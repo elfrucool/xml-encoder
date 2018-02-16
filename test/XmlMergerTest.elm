@@ -15,8 +15,8 @@ mergeScenarios =
         , test "merge 2: empty path, actual=element + previous=element" <|
             \_ ->
                 testMerge
-                    ( [], C.Element (X.element "root" [] []) )
                     ( [], C.makeNodeValueElement "element" "value" )
+                    ( [], C.Element (X.element "root" [] []) )
                     ( []
                     , C.Element <|
                         X.element "root"
@@ -29,6 +29,24 @@ mergeScenarios =
                     ( [], C.None )
                     ( [], C.Element (X.element "root" [] []) )
                     ( [], C.Element (X.element "root" [] []) )
+        , test "merge 4: empty path, actual=element + previous=attribute" <|
+            \_ ->
+                testMerge
+                    ( [], C.Element (X.element "element" [] []) )
+                    ( [], C.Attribute ( "attr", "value" ) )
+                    ( [], C.None )
+        , test "merge 5: empty path, actual=attribute + previous=attribute" <|
+            \_ ->
+                testMerge
+                    ( [], C.Attribute ( "attr2", "value2" ) )
+                    ( [], C.Attribute ( "attr1", "value1" ) )
+                    ( [], C.None )
+        , test "merge 6: empty path, actual=attribute + previous=element" <|
+            \_ ->
+                testMerge
+                    ( [], C.Attribute ( "attr", "value" ) )
+                    ( [], C.Element (X.element "node" [] []) )
+                    ( [], C.Element (X.element "node" [ ( "attr", "value" ) ] []) )
         ]
 
 

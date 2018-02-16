@@ -10,24 +10,33 @@ merge ( curPath, curNode ) ( prevPath, prevNode ) =
     let
         prevXmlNode =
             C.getXmlNode prevNode
-
-        curXmlNode =
-            (C.getXmlNode curNode)
     in
         if C.isElement prevNode then
-            ( [], appendElement curXmlNode prevXmlNode )
+            ( [], maybeAppendNode curNode prevXmlNode )
         else
             ( [], C.None )
 
 
-appendElement : Maybe X.XmlNode -> Maybe X.XmlNode -> C.Node
-appendElement curXmlNode prevXmlNode =
+maybeAppendNode : C.Node -> Maybe X.XmlNode -> C.Node
+maybeAppendNode curNode maybePrevXmlNode =
     maybeToNode <|
-        ME.orElse prevXmlNode <|
-            Maybe.map2
-                (\n c -> X.addChildren [ c ] n)
-                curXmlNode
-                prevXmlNode
+        ME.orElse maybePrevXmlNode <|
+            Maybe.andThen
+                (appendNode curNode)
+                maybePrevXmlNode
+
+
+appendNode : C.Node -> X.XmlNode -> Maybe X.XmlNode
+appendNode curNode prevXmlNode =
+    case curNode of
+        C.None ->
+            Nothing
+
+        C.Element child ->
+            Just <| X.addChildren [ child ] prevXmlNode
+
+        C.Attribute attribute ->
+            Just <| X.addAttributes [ attribute ] prevXmlNode
 
 
 maybeToNode : Maybe X.XmlNode -> C.Node
